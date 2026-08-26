@@ -22,6 +22,15 @@ const props = defineProps<{
 	columnOptions: ColumnOption[]
 }>()
 
+<<<<<<< HEAD
+=======
+const formatOptions = [
+	{ label: __('Normal'), value: '' },
+	{ label: __('Percent'), value: 'percent' },
+	{ label: __('Currency'), value: 'currency' },
+]
+
+>>>>>>> 911087c (fix: read a currency symbol from the site, not from the template (#1328))
 // True when at least one available column is a pre-aggregated measure (i.e. it
 // came from a summarize/pivot_wider step in the source query). In this case we
 // skip the "pick a function" step by pre-selecting `sum`, since the data is

@@ -10,13 +10,29 @@ type SessionUser = {
 	is_admin: boolean
 	is_user: boolean
 	can_download: boolean
-	country: string
 	locale: string
 	is_v2_instance: boolean
 	default_version: 'v3' | 'v2' | ''
 	has_desk_access?: boolean
 	has_demo_data: boolean
 	fiscal_year_start: string
+}
+
+// Settings of the site, not of whoever is reading it. A guest opening a public
+// dashboard gets these and nothing else, so a shared chart prints its amounts
+// the same way the workbook does.
+type SiteInfo = {
+	country: string
+	currency: string | null
+	currency_symbol: string
+	currency_symbol_on_right: boolean
+}
+
+const emptySite: SiteInfo = {
+	country: '',
+	currency: null,
+	currency_symbol: '',
+	currency_symbol_on_right: false,
 }
 
 const emptyUser: SessionUser = {
@@ -28,7 +44,6 @@ const emptyUser: SessionUser = {
 	is_admin: false,
 	is_user: false,
 	can_download: true,
-	country: '',
 	locale: 'en-US',
 	is_v2_instance: false,
 	default_version: '',
@@ -38,12 +53,17 @@ const emptyUser: SessionUser = {
 
 const session = reactive({
 	user: { ...emptyUser },
+	site: { ...emptySite },
 	initialized: false,
 	isLoggedIn: computed(() => false),
 	isAuthorized: computed(() => false),
 	initialize,
 	fetchSessionInfo,
+<<<<<<< HEAD
 	updateDefaultVersion,
+=======
+	fetchSiteInfo,
+>>>>>>> 911087c (fix: read a currency symbol from the site, not from the template (#1328))
 	login,
 	logout,
 	resetSession,
@@ -57,7 +77,9 @@ session.isAuthorized = computed(() => session.user.is_admin || session.user.is_u
 async function initialize(force: boolean = false) {
 	if (session.initialized && !force) return
 	Object.assign(session.user, getSessionFromCookies())
-	session.isLoggedIn && (await fetchSessionInfo())
+	// the site's own settings reach a guest too, so they are fetched apart from
+	// the user's, and alongside them rather than after
+	await Promise.all([fetchSiteInfo(), session.isLoggedIn ? fetchSessionInfo() : null])
 	session.initialized = true
 }
 
@@ -75,9 +97,18 @@ async function fetchSessionInfo() {
 	})
 }
 
+<<<<<<< HEAD
 function updateDefaultVersion(version: SessionUser['default_version']) {
 	session.user.default_version = version
 	return call('insights.api.update_default_version', { version })
+=======
+async function fetchSiteInfo() {
+	const siteInfo: SiteInfo = await call('insights.api.get_site_info')
+	Object.assign(session.site, {
+		...siteInfo,
+		currency_symbol_on_right: Boolean(siteInfo.currency_symbol_on_right),
+	})
+>>>>>>> 911087c (fix: read a currency symbol from the site, not from the template (#1328))
 }
 
 async function login(email: string, password: string) {
